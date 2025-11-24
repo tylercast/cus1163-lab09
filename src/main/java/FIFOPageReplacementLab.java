@@ -2,61 +2,37 @@ import java.util.*;
 
 public class FIFOPageReplacementLab {
 
-    /**
-     * TODO 1: Implement FIFO Page Replacement Algorithm
-     *
-     * Simulates FIFO page replacement for a given reference string and number of frames.
-     * Returns an array: [pageFaults, pageHits]
-     *
-     * Algorithm:
-     *   1. Create a Queue<Integer> to represent frames in memory (use LinkedList)
-     *   2. Create a Set<Integer> to quickly check if a page is in memory (use HashSet)
-     *   3. Initialize pageFaults = 0 and pageHits = 0
-     *   4. For each page in the referenceString:
-     *      a. If page is in the Set (memory):
-     *         - Increment pageHits
-     *      b. If page is NOT in the Set:
-     *         - Increment pageFaults
-     *         - If queue size equals numFrames (frames are full):
-     *           * Remove the oldest page: int victim = queue.poll()
-     *           * Remove victim from the Set
-     *         - Add the new page to the queue
-     *         - Add the new page to the Set
-     *   5. Return new int[]{pageFaults, pageHits}
-     *
-     * Example:
-     *   referenceString = [1, 2, 3, 1]
-     *   numFrames = 2
-     *
-     *   Access 1: queue=[1], set={1}, FAULT
-     *   Access 2: queue=[1,2], set={1,2}, FAULT
-     *   Access 3: queue=[2,3], set={2,3}, FAULT (removed 1)
-     *   Access 1: queue=[3,1], set={3,1}, FAULT (removed 2)
-     *
-     *   Result: [4 faults, 0 hits]
-     */
-    public static int[] simulateFIFO(int[] referenceString, int numFrames) {
-        int pageFaults = 0;
-        int pageHits = 0;
+public static int[] simulateFIFO(int[] referenceString, int numFrames) {
+    int pageFaults = 0;
+    int pageHits = 0;
 
-        // TODO 1: Implement FIFO algorithm here
-        // Queue<Integer> queue = new LinkedList<>();
-        // Set<Integer> pagesInMemory = new HashSet<>();
+    // Queue tracks the ORDER pages entered memory (FIFO order)
+    Queue<Integer> queue = new LinkedList<>();
+    // Set lets us quickly check if a page is currently in memory
+    Set<Integer> pagesInMemory = new HashSet<>();
 
-        // for (int page : referenceString) {
-        //     if (pagesInMemory.contains(page)) {
-        //         // Page HIT
-        //     } else {
-        //         // Page FAULT
-        //         if (queue.size() == numFrames) {
-        //             // Remove oldest page
-        //         }
-        //         // Add new page
-        //     }
-        // }
+    for (int page : referenceString) {
+        // Case 1: Page HIT (already in memory)
+        if (pagesInMemory.contains(page)) {
+            pageHits++;
+        } else {
+            // Case 2: Page FAULT (page is not in memory)
+            pageFaults++;
 
-        return new int[]{pageFaults, pageHits};
+            // If all frames are full, evict the OLDEST page (front of queue)
+            if (queue.size() == numFrames) {
+                int victim = queue.poll();      // remove oldest page from queue
+                pagesInMemory.remove(victim);   // also remove from the Set
+            }
+
+            // Bring the new page into memory
+            queue.offer(page);          // new page becomes the newest in FIFO order
+            pagesInMemory.add(page);    // mark it as present in memory
+        }
     }
+
+    return new int[]{pageFaults, pageHits};
+}
 
     /**
      * Display results for a test case (FULLY PROVIDED)
@@ -95,7 +71,7 @@ public class FIFOPageReplacementLab {
 
         // Check for Belady's Anomaly
         if (result2[0] > result1[0]) {
-            System.out.println("⚠️  BELADY'S ANOMALY DETECTED! ⚠️");
+            System.out.println("BELADY'S ANOMALY DETECTED!");
             System.out.println("With " + frames1 + " frames: " + result1[0] + " page faults");
             System.out.println("With " + frames2 + " frames: " + result2[0] + " page faults");
             System.out.println("Adding more frames INCREASED page faults!\n");
